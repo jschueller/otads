@@ -1,0 +1,93 @@
+% 
+% Permission is granted to copy, distribute and/or modify this document
+% under the terms of the GNU Free Documentation License, Version 1.2
+% or any later version published by the Free Software Foundation;
+% with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+% Texts.  A copy of the license is included in the section entitled "GNU
+% Free Documentation License".
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+\section{Examples Guide}
+
+This section presents some full-length examples of studies using the module.
+
+\subsection{Flood model}
+
+
+\begin{lstlisting}
+import openturns as ot
+import otads as ads
+import math as m
+import sys
+
+
+def flood_model(X):
+    L = 5000.  # m
+    B = 300.  # m
+    Q = X[0]  # m^3.s^-1
+    Ks = X[1]  # m^1/3.s^-1
+    Zv = X[2]  # m
+    Zm = X[3]  # m
+    Hd = 0.  # m
+    Zb = 55.5  # m
+    S = Zv + (Q / (Ks * B * m.sqrt((Zm - Zv) / L))) ** (3. / 5) - (Hd + Zb)
+    return [S]
+    
+dim = 4
+function = ot.PythonFunction(dim, 1, flood_model)
+
+Q_law = ot.TruncatedDistribution(
+    ot.Gumbel(1. / 558., 1013., ot.Gumbel.ALPHABETA), 0., ot.TruncatedDistribution.LOWER)
+Ks_law = ot.TruncatedDistribution(
+    ot.Normal(30.0, 7.5), 0., ot.TruncatedDistribution.LOWER)
+Zv_law = ot.Triangular(49., 50., 51.)
+Zm_law = ot.Triangular(54., 55., 56.)
+coll = ot.DistributionCollection([Q_law, Ks_law, Zv_law, Zm_law])
+distribution = ot.ComposedDistribution(coll)
+k = 2.0 # Pf ~ 1e-3
+randomVector = ot.RandomVector(distribution)
+composite = ot.RandomVector(function, randomVector)
+event = ot.Event(composite, ot.Greater(), k)
+
+algo = ads.AdaptiveDirectionalSampling(event)
+algo.setMaximumOuterSampling(1000)
+algo.setGamma([0.5, 0.5])
+algo.run()
+result = algo.getResult()
+print(result)
+\end{lstlisting}
+
+\subsection{Hyperplane problem}
+
+
+\begin{lstlisting}
+import openturns as ot
+import otads as ads
+import math as m
+
+dim=5
+linear = [1.] * dim
+linear[0] = 0.25
+constant = [0.]
+center = [0.] * dim
+function = ot.LinearNumericalMathFunction(center, constant, ot.Matrix(1, dim, linear))
+
+distribution = ot.Normal(dim)
+randomVector = ot.RandomVector(distribution)
+composite = ot.RandomVector(function, randomVector)
+pft = 1e-4
+k = ot.Normal().computeQuantile(pft)[
+    0] * ot.NumericalPoint(linear).norm()
+event = ot.Event(composite, ot.Less(), k)
+
+n = 1000
+algo = ads.AdaptiveDirectionalSampling(event)
+algo.setMaximumOuterSampling(n)
+algo.setGamma([0.5, 0.5])
+algo.run()
+result = algo.getResult()
+print(result)
+\end{lstlisting}

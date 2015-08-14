@@ -1,0 +1,102 @@
+% 
+% Permission is granted to copy, distribute and/or modify this document
+% under the terms of the GNU Free Documentation License, Version 1.2
+% or any later version published by the Free Software Foundation;
+% with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+% Texts.  A copy of the license is included in the section entitled "GNU
+% Free Documentation License".
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+\section{User Manual}
+
+This section gives an exhaustive presentation of the objects and functions provided by the $otads$ module, in the alphabetic order.
+
+
+\subsection{AdaptiveDirectionalSampling}
+
+The AdaptiveDirectionalSampling inherits from the simulation class. Refer to the appropriate documentation for the methods of the Simulation class.
+
+\begin{description}
+
+\item[Usage :] \rule{0pt}{1em}
+  \begin{description}
+  \item $AdaptiveDirectionalSampling(event)$
+  \item $AdaptiveDirectionalSampling(event, rootStrategy)$
+  \item $AdaptiveDirectionalSampling(event, rootStrategy, samplingStrategy)$
+  \end{description}
+
+\item[Arguments :]  \rule{0pt}{1em}
+  \begin{description}
+  \item $event$ : an Event, the event we want to evaluate the probability
+  \item $rootStrategy$ : a RootStrategy, the strategy adopted to evaluate the intersections of each direction with the limit state function and take into account the contribution of the direction to the event probability
+  \item $samplingStrategy$ : a SamplingStrategy, the strategy adopted to sample directions.
+  \end{description}
+
+\item[Value :] an AdaptiveDirectionalSampling
+
+\item[Details :]  \rule{0pt}{1em}
+  \begin{description}
+  \item AdaptiveDirectionalSampling constructor
+  \end{description}
+
+\item $getGamma$
+    \begin{description}
+    \item[Usage :] $getGamma()$
+    \item[Arguments :] no argument
+    \item[Value :] a vector, the repartition of the budget for each learning/evaluation step.
+    \end{description}
+    \bigskip
+
+\item $getRootStrategy$
+    \begin{description}
+    \item[Usage :] $getRootStrategy()$
+    \item[Arguments :] no argument
+    \item[Value :] a RootStrategy, the strategy adopted to evaluate the intersections of each direction with the limit state function and take into account the contribution of the direction to the event probability.
+    \end{description}
+    \bigskip
+
+\item $getSamplingStrategy$
+    \begin{description}
+    \item[Usage :] $getSamplingStrategy()$
+    \item[Arguments :] no argument
+    \item[Value :] a SamplingStrategy, the strategy adopted to sample directions.
+    \end{description}
+    \bigskip
+    
+\item $getQuadrantOrientation$
+    \begin{description}
+    \item[Usage :] $getQuadrantOrientation()$
+    \item[Arguments :] no argument
+    \item[Value :] a vector, the bisector of the first quadrant used for the DPADS variant.
+    \end{description}
+    \bigskip    
+    
+ \item $getPartialStratification$
+    \begin{description}
+    \item[Usage :] $getPartialStratification()$
+    \item[Arguments :] no argument
+    \item[Value :] a boolean deciding if the ADS-2+ variant is used, default [false].
+    \end{description}
+    \bigskip     
+    
+\item $getMaximumStratificationDimension$
+    \begin{description}
+    \item[Usage :] $getMaximumStratificationDimension()$
+    \item[Arguments :] no argument
+    \item[Value :] an integer, the maximum number of variables to be stratified in the ADS+ variant, default [3].
+    \end{description}
+    \bigskip 
+    
+  \item $getTStatistic$
+    \begin{description}
+    \item[Usage :] $getTStatistic()$
+    \item[Arguments :] no argument
+    \item[Value :] a vector, the values of the $\tilde T$ statistic.
+    \end{description}
+    \bigskip   
+    
+The methods $getXXXX$ methods have a corresponding $setXXX$ method, except for $getTStatistic$.
+
+\item[Links] \rule{0pt}{1em}
+\end{description}
+

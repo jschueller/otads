@@ -1,0 +1,139 @@
+% 
+% Permission is granted to copy, distribute and/or modify this document
+% under the terms of the GNU Free Documentation License, Version 1.2
+% or any later version published by the Free Software Foundation;
+% with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+% Texts.  A copy of the license is included in the section entitled "GNU
+% Free Documentation License".
+
+\section{Validation}
+
+This section provides some insight on the performance of the present implementation of the ADS-2 method (and its variants) on simple academical benchmarks. The method will be compared to crude MC. The benchmarks expose the total number of calls to the model $N$, the failure probability $P_F$, the generalized reliability index $\beta$ and the coefficient of variation $CV$.\par
+
+\subsection{Flood problem}
+
+The purpose of this example is to estimate the risk of a flood to run over a dyke.\par
+
+\subsubsection{Problem statement}
+
+The limit-state function is defined as follows:
+\begin{eqnarray*}
+  L = 5000.\\
+  B = 300.\\
+  H_d = 0.\\
+  Z_b = 55.5\\
+  S(Q, K_s, Z_v, Z_m) = Z_v + \left( \frac{Q}{K_s B \sqrt{\frac{Z_m - Z_v}{L}}} \right) ^\frac{3}{5} - (H_d + Z_b)\\
+  S < 0
+\end{eqnarray*}
+The random variables distribution are given in Table~\ref{tab:flood_prob}. All components are assumed independent.\par
+
+\begin{table}
+    \centering
+    \begin{tabular}{lrr}
+        \hline
+        Variable & Distribution & \text{Parameters} \\
+        \hline
+        Q & Gumbel   & $\alpha = \frac{1}{558}, \beta=1013$  \\
+        $K_s$ & Normal   & $\mu=30, \sigma= 7.5$ \\
+        $Z_v$ & Triangular   & $a=49, m=50, b=51$ \\
+        $Z_m$ & Triangular   & $a=54, m=55, b=56$ \\
+        \hline
+    \end{tabular}
+    \caption{Probabilistic model for the flood problem.}
+    \label{tab:flood_prob}
+\end{table}
+
+\newpage
+
+\subsubsection{Results}
+
+Let use the method for several dyke heights $H_d$, with $n=10^5$ Monte Carlo simulations (MCS) and thumb rule $n_{ADS}=10^5/20$ for ADS-2 which is expected to yield $n < 10^5$ evaluations of the limit-state function (20 per sampled direction). The computational budget is split as follows: $\gamma_1,\,\gamma_2 = 0.5$.\par
+
+\begin{table}
+    \centering
+    \begin{tabular}{ccccc}
+        \hline
+        Method & $H_d$ & $n$ & $\hat P_f$ & $\hat {CV}$ \\
+        \hline
+        MCS & 0. & $10^5$ & $1.18 \times 10^{-2}$ & $2.89 \times 10^{-2}$\\
+        MCS & 2. & $10^5$ & $1.30 \times 10^{-3}$ & $8.76 \times 10^{-2}$\\
+        MCS & 5. & $10^5$ & $2.00 \times 10^{-4}$ & $2.24 \times 10^{-1}$\\
+        MCS & 8. & $10^5$ & $9.00 \times 10^{-5}$ & $3.33 \times 10^{-1}$\\
+        ADS-2 & 0.& $66,395$ & $1.30 \times 10^{-2}$ & $2.56 \times 10^{-3}$\\
+        ADS-2 & 2.& $83,573$ & $1.22 \times 10^{-3}$ & $2.40 \times 10^{-3}$\\
+        ADS-2 & 5.& $99,781$ & $1.92 \times 10^{-4}$ & $3.38 \times 10^{-3}$\\
+        ADS-2 & 8.& $94,993$ & $6.65 \times 10^{-5}$ & $3.53 \times 10^{-3}$\\
+        \hline
+    \end{tabular}
+    \caption{Benchmark results for the flood model.}
+\end{table}
+
+The ADS-2 method gives much better coefficients of variation than the standard Monte Carlo simulation for approximately the same number of calls to the limit-state function.\par
+
+\newpage
+
+\subsection{The hyperplane problem}
+
+This parametric example allows to spread the failure domain over either one or several quadrants. This feature enables an emphasis of the performance of the dimension reduction (ADS-2+) and design point (DP-ADS-2) variants.\par
+
+\subsubsection{Problem statement}
+
+The hyperplane limit-state function is defined as follows:
+\begin{eqnarray*}
+  H(U_1, \dots, U_d) = \sum\limits_{i=1}^d \alpha_i U_i\\
+  H < k\\
+\end{eqnarray*}
+where $U_i, i = 1, \ldots, d$ are independent, zero-mean and unit-variance normal random variables.\par
+
+The failure probability comes analytically in this case and reads:
+\begin{equation*}
+    P_f = \Phi\left(\frac{k}{\sqrt{\sum\limits_{i=1}^d \alpha_i^2}}\right).
+\end{equation*}
+Hence given $\alpha_i$'s values, we can choose $k$ for a given target probability $P_f$:
+\begin{equation*}
+    k = \Phi^{-1}(P_f)\,\sqrt{\sum\limits_{i=1}^d \alpha_i^2}.
+\end{equation*}
+
+\subsubsection{Results}
+
+For this case we will use $n_{ADS}=\frac{10^5}{11}$ as above. A first hyperplane example (H1) is defined where $\alpha_i = 1$ with $n = 10^5$ for several failure levels $P_f = 10^{-3}, 10^{-4}, 10^{-5}$ in dimension $d = 5$. The total computational budget is split as follows: $\gamma_1,\,\gamma_2 = 0.5$. The results are provided in Table~\ref{tab:H1}.\par
+
+\begin{table}
+    \centering
+    \begin{tabular}{cccccc}
+        \hline
+        Method & $P_f$ & $k$ & n & $\hat P_f$ & $\hat {CV}$ \\
+        \hline
+        MC & $1 \times 10^{-3}$ & $-15.45$ & $10^5$ & $9.00 \times 10^{-4}$ & $1.05 \times 10^{-1}$ \\
+        MC & $1 \times 10^{-4}$ & $-18.60$ & $10^5$ & $8.00 \times 10^{-5}$ & $3.54 \times 10^{-1}$\\
+        MC & $1 \times 10^{-5}$ & $-21.32$ & $10^5$ & $1.00 \times 10^{-5}$ & $1.00 \times 10^{0}$\\
+        ADS-2 & $1 \times 10^{-3}$ & $-15.45$ & $99,671$ & $2.20 \times 10^{-3}$ & $4.66 \times 10^{-4}$\\
+        ADS-2 & $1 \times 10^{-4}$ & $-18.60$ & $99,301$ & $1.06 \times 10^{-4}$ & $1.13 \times 10^{-3}$\\
+        ADS-2 & $1 \times 10^{-5}$ & $-21.32$ & $10,0943$ & $9.91 \times 10^{-6}$ & $1.63 \times 10^{-3}$\\
+        \hline
+    \end{tabular}
+    \label{tab:H1}
+    \caption{Benchmark results for the first hyperplane problem (H1).}
+\end{table}
+
+The ADS-2 method gives much better coefficients of variation than the standard Monte Carlo simulation for approximately the same number of calls to the limit-state function.\par
+
+A second hyperplane example (H3) where $\alpha_1, \dots, \alpha_q = 1, \alpha_{q+1}, \dots, \alpha_{d} = 0$ with $q = 2$, $n = 10^5$, $n_{ADS} = \frac{10^5}{16}$, $P_f = 1 \times 10^{-4}$ (hence $k \approx -18.60$) in dimension $d=5$, $\gamma_1,\gamma_2=0.5$. The ADS-2+ variant will use $d' = 2 < 5$ as the number of stratified dimensions, and the DP-ADS-2 variant will use the $\alpha_i$ coefficients as the quadrant orientation. The results are provided in Table~\ref{tab:H3}.\par
+
+\begin{table}
+    \centering
+    \begin{tabular}{cccc}
+        \hline
+        Method & n & $\hat P_f$ & $\hat {CV}$ \\
+        \hline
+        MC & $10^5$ & $5.00 \times 10^{-5}$ & $4.47 \times 10^{-1}$ \\
+        ADS-2 & $104,555$ & $1.04 \times 10^{-4}$ & $3.34 \times 10^{-3}$ \\
+        ADS-2+ & $93,316$ & $9.48 \times 10^{-5}$ & $1.79 \times 10^{-3}$ \\
+        DPADS-2 & $98,147$ & $9.92 \times 10^{-5}$ & $2.93 \times 10^{-3}$ \\
+        \hline
+    \end{tabular}
+    \caption{Benchmark results for the second hyperplane problem (H3).}
+    \label{tab:H3}
+\end{table}
+
+Both ADS-2+ and DP-ADS-2 variants yield slight improvements in terms of number of calls to the limit state function comparing to the vanilla ADS-2 method.\par

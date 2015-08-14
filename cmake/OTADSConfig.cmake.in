@@ -1,0 +1,38 @@
+#                                               -*- cmake -*-
+#
+#  OTADSConfig.cmake(.in)
+#
+#  Find OTADS includes and libraries
+#
+#  (C) Copyright 2008-2013 Phimeca
+#
+
+# Use the following variables to compile and link against OTADS:
+#  OTADS_FOUND          True if OTADS was found on your system
+#  OTADS_USE_FILE       The file making OTADS usable
+#  OTADS_DEFINITIONS    Definitions needed to build with OTADS
+#  OTADS_INCLUDE_DIRS   List of directories where OTADS' header file are
+#  OTADS_LIBRARIES      List of libraries to link against
+#  OTADS_LIBRARY_DIRS   List of directories containing OTADS' libraries
+#  OTADS_ROOT_DIR       The base directory of OTADS
+#  OTADS_VERSION_STRING A human-readable string containing the version
+#  OTADS_VERSION_MAJOR  The major version of OTADS
+#  OTADS_VERSION_MINOR  The minor version of OTADS
+#  OTADS_VERSION_PATCH  The patch version of OTADS
+
+set ( OTADS_FOUND 1 )
+set ( OTADS_USE_FILE     "@OTADS_USE_FILE@" )
+
+set ( OTADS_DEFINITIONS  "@OTADS_DEFINITIONS@" )
+set ( OTADS_INCLUDE_DIR  "@OTADS_INCLUDE_DIR@" )
+set ( OTADS_INCLUDE_DIRS "@OTADS_INCLUDE_DIRS@" )
+set ( OTADS_LIBRARIES    "@OTADS_LIBRARIES@" )
+set ( OTADS_LIBRARY_DIRS "@OTADS_LIBRARY_DIRS@" )
+set ( OTADS_ROOT_DIR     "@OTADS_ROOT_DIR@" )
+
+set ( OTADS_VERSION_STRING "@OTADS_VERSION_STRING@" )
+set ( OTADS_VERSION_MAJOR  "@OTADS_VERSION_MAJOR@" )
+set ( OTADS_VERSION_MINOR  "@OTADS_VERSION_MINOR@" )
+set ( OTADS_VERSION_PATCH  "@OTADS_VERSION_PATCH@" )
+
+set ( OTADS_PYTHON@PYTHON_VERSION_MAJOR@_MODULE_PATH "@OTADS_PYTHON_MODULE_PATH@" )

@@ -1,0 +1,88 @@
+Index: python/test/t_AdaptativeDirectionalSampling_hyperplane.py
+===================================================================
+--- python/test/t_AdaptativeDirectionalSampling_hyperplane.py	(révision 58)
++++ python/test/t_AdaptativeDirectionalSampling_hyperplane.py	(copie de travail)
+@@ -40,20 +40,21 @@
+ 
+     linear = list(linear)
+     linear = [0.] * dim
+-    linear[dim - 1] = 1.
++    linear[0] = 1.
++    linear[1] = 1.
+     linears.append(linear)
+     function = hyperplane(linear)
+     function.setName('H3')
+     functions.append(function)
+ 
+-    for ih in range(len(functions)):
++    for ih in range(len(functions))[2:]:
+         function = functions[ih]
+ 
+         distribution = ot.Normal(dim)
+         randomVector = ot.RandomVector(distribution)
+         composite = ot.RandomVector(function, randomVector)
+ 
+-        for pft in [1e-4, 1e-6, 1e-8][1:2]:
++        for pft in [1e-4, 1e-6, 1e-8][0:1]:
+ 
+             k = ot.Normal().computeQuantile(pft)[
+                 0] * ot.NumericalPoint(linears[ih]).norm()
+@@ -62,23 +63,46 @@
+             print '--------------------'
+             print 'model H' + str(ih) + ' dim=%d' % dim, 'pft=%.2e' % pft, 'k=%g' % k
+ 
+-            for n in [100, 1000][1:]:
++            for n in [100, int(1e5)][1:]:
+                 for gamma1 in [0.25, 0.5, 0.75][1:2]:
+-                    #algo = ot.MonteCarlo(event)
+-                    # algo.setMaximumOuterSampling(100*n)
+-                    # algo.setMaximumCoefficientOfVariation(-1.)
+-                    # algo.run()
+-                    #result = algo.getResult()
+-                    # print result
++                    algo = ot.MonteCarlo(event)
++                    algo.setMaximumOuterSampling(n)
++                    algo.setMaximumCoefficientOfVariation(-1.)
++                    algo.run()
++                    result = algo.getResult()
++                    print 'MC', result
++                    
+                     algo = ads.AdaptativeDirectionalSampling(event)
+-                    algo.setMaximumOuterSampling(n)
++                    algo.setMaximumOuterSampling(n/16)
+                     algo.setGamma([gamma1, 1.0 - gamma1])
+                     calls0 = function.getEvaluationCallsNumber()
+                     algo.run()
+                     calls = function.getEvaluationCallsNumber() - calls0
+                     result = algo.getResult()
+-                    pf = result.getProbabilityEstimate()
+-                    var = result.getVarianceEstimate()
+-                    cov = result.getCoefficientOfVariation()
+-                    print result,
++                    print 'ADS-2', result,
+                     print 'callsNumber=%d' % calls + ' gamma=' + str(algo.getGamma())
++                    
++                    algo = ads.AdaptativeDirectionalSampling(event)
++                    algo.setMaximumOuterSampling(n/16)
++                    algo.setGamma([gamma1, 1.0 - gamma1])
++                    algo.setPartialStratification(True)
++                    algo.setMaximumStratificationDimension(3)
++                    calls0 = function.getEvaluationCallsNumber()
++                    algo.run()
++                    calls = function.getEvaluationCallsNumber() - calls0
++                    result = algo.getResult()
++                    print 'ADS-2+', result,
++                    print 'callsNumber=%d' % calls + ' gamma=' + str(algo.getGamma())
++                    
++                    
++                    algo = ads.AdaptativeDirectionalSampling(event)
++                    algo.setMaximumOuterSampling(n/16)
++                    algo.setGamma([gamma1, 1.0 - gamma1])
++                    algo.setQuadrantOrientation(linear)
++                    calls0 = function.getEvaluationCallsNumber()
++                    algo.run()
++                    calls = function.getEvaluationCallsNumber() - calls0
++                    result = algo.getResult()
++                    print 'DPADS-2', result,
++                    print 'callsNumber=%d' % calls + ' gamma=' + str(algo.getGamma())
++                    

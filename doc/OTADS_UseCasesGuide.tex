@@ -1,0 +1,141 @@
+% 
+% Permission is granted to copy, distribute and/or modify this document
+% under the terms of the GNU Free Documentation License, Version 1.2
+% or any later version published by the Free Software Foundation;
+% with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+% Texts.  A copy of the license is included in the section entitled "GNU
+% Free Documentation License".
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+\section{Use Cases Guide}
+
+This section presents the main features of the module $otads$ in their context.\par
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{The basic adaptive directional sampling algorithm: ADS-2}
+
+The following Python script shows how the basic adaptive directional sampling algorithm can be used.\par
+
+\begin{lstlisting}
+import openturns as ot
+from otads import AdaptiveDirectionalSampling
+
+# Event definition: R - S (see OpenTURNS main documentation)
+model = ot.NumericalMathFunction(ot.Description(['R', 'S']),
+                                 ot.Description(['G']),
+                                 ot.Description(['R - S']))
+input = ot.ComposedDistribution(
+  ot.DistributionCollection([ot.Normal(5., 1.),
+                             ot.Normal(3., 1.)]))
+output = ot.RandomVector(model,
+                         ot.RandomVector(input))
+event = ot.Event(output, ot.LessOrEqual(), 0.)
+                                 
+# Create ADS-2 algorithm
+# (other constructors exist, see AdaptiveDirectionalSampling.__doc__)
+algorithm = AdaptiveDirectionalSampling(event)
+
+# Set the total computational budget (total number of directions)
+algorithm.setMaximumOuterSampling(int(1e4))
+
+# Set fractions of the total computational budget for the learning and
+# estimation steps (should sum up to 1)
+algorithm.setGamma([.5, .5])
+
+# Set other directional sampling options (see OpenTURNS main documentation)
+algorithm.setBlockSize(int(1e2))
+algorithm.setMaximumCoefficientOfVariation(.2)
+algorithm.setRootStrategy(ot.SafeAndSlow())
+algorithm.setSamplingStrategy(ot.RandomDirection(2))
+
+# Run & get results
+algorithm.run()
+results = algorithm.getResult()
+print(results)
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{The dimension reduction variant of the adaptive directional sampling algorithm: ADS-2+}
+
+The following Python script shows how to enable the dimension reduction variant.\par
+
+\begin{lstlisting}
+import openturns as ot
+from otads import AdaptiveDirectionalSampling
+
+# Event definition: R - S with dummy additional variables
+# (see OpenTURNS main documentation)
+model = ot.NumericalMathFunction(ot.Description(['R', 'S', 'dummy1', 'dummy2']),
+                                 ot.Description(['G']),
+                                 ot.Description(['R - S']))
+input = ot.ComposedDistribution(
+  ot.DistributionCollection([ot.Normal(5., 1.),
+                             ot.Normal(3., 1.),
+                             ot.Normal(),
+                             ot.Normal()]))
+output = ot.RandomVector(model,
+                         ot.RandomVector(input))
+event = ot.Event(output, ot.LessOrEqual(), 0.)
+
+# Create ADS-2 algorithm
+# (other constructors exist, see AdaptiveDirectionalSampling.__doc__)
+algorithm = AdaptiveDirectionalSampling(event)
+algorithm.setMaximumOuterSampling(int(1e4))
+
+# Enable partial stratification (dimension reduction)
+algorithm.setPartialStratification(True)
+
+# Set the maximum number of stratified dimensions
+algorithm.setMaximumStratificationDimension(2)
+
+# Run & get results
+algorithm.run()
+results = algorithm.getResult()
+print(results)
+print('T = ', algorithm.getTStatistic())
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{The design point variant of the adaptive directional sampling algorithm: DP-ADS-2}
+
+Assuming some OpenTURNS \emph{Event} has been defined, the following Python script shows how to enable the dimension reduction variant.\par
+
+Python script for this use case:
+
+\begin{lstlisting}
+from otads import AdaptiveDirectionalSampling
+
+# Event definition: R - S (see OpenTURNS main documentation)
+model = ot.NumericalMathFunction(ot.Description(['R', 'S']),
+                                 ot.Description(['G']),
+                                 ot.Description(['R - S']))
+input = ot.ComposedDistribution(
+  ot.DistributionCollection([ot.Normal(5., 1.),
+                             ot.Normal(3., 1.)]))
+output = ot.RandomVector(model,
+                         ot.RandomVector(input))
+event = ot.Event(output, ot.LessOrEqual(), 0.)
+
+# Preliminary FORM analysis (see OpenTURNS main documentation)
+form = ot.FORM(ot.AbdoRackwitz(),
+               event,
+               input.getMean())
+form.run()
+form_results = form.getResult()
+
+# Create ADS-2 algorithm
+# (other constructors exist, see AdaptiveDirectionalSampling.__doc__)
+algorithm = AdaptiveDirectionalSampling(event)
+algorithm.setMaximumOuterSampling(int(1e4))
+
+# Set the design point for rotation
+algorithm.setQuadrantOrientation(form_results.getStandardSpaceDesignPoint())
+
+# Run & get results
+algorithm.run()
+results = algorithm.getResult()
+print(results)
+\end{lstlisting}

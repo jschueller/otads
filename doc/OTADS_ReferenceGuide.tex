@@ -1,0 +1,88 @@
+% 
+% Permission is granted to copy, distribute and/or modify this document
+% under the terms of the GNU Free Documentation License, Version 1.2
+% or any later version published by the Free Software Foundation;
+% with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+% Texts.  A copy of the license is included in the section entitled "GNU
+% Free Documentation License".
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+\section{Reference Guide}
+
+The OTADS library implemts the \emph{two-step adaptive directional sampling} (ADS-2) sampling algorithm.\par
+
+\subsection{Adaptive Directional Sampling}
+
+\MathematicalDescription{
+\underline{\textbf{Goal}}\\
+Let $\mathcal D_f$ denote the failure domain defined as $\mathcal D_f = \{\ux \in \mathbb R^{n_X} | g(\ux) \leq 0\}$, where $\ux$ are realization of the random vector $\uX$ and $g$ is the limit-state function as defined elsewhere in the OpenTURNS documentation. The purpose of the ADS-2 algorithm and its variants is to estimate the following probability:
+\begin{eqnarray}
+  P_f & = & \int_{\mathcal D_f} f_{\uX}(\ux)\,d\ux \\
+      & = & \int_{\mathbb R^{n_X}} \mathbf{1}_{\{g(\ux) \:\leq 0\: \}}\,f_{\uX}(\ux)\,d\ux \\
+      & = & \Prob{\{g(\uX) \leq 0\}}.
+\end{eqnarray}
+
+\underline{\textbf{Principles}}\\
+
+The ADS-2 method combines the stratified and directional sampling concepts. \emph{Stratified sampling} consists in splitting the support of the random vector $\ux$ into $m$ mutually exclusive and collectively exhaustive subsets. Here, ADS-2 splits the standard space into $m = 2^d$ quadrants, where $d$ is the dimension of the random vector $\uX$. Stratified sampling is often run in two steps: \emph{(i)} a \emph{learning step} is used for polling the input space and detect the subsets that contribute most to the probability and \emph{(ii)} an \emph{estimation step} is used for estimating the probability by weighted sampling (some subsets are more sampled than the others). \emph{Directional sampling} uses the spheric symmetry of the standard space for estimating the failure probability as the average of conditional probabilities calculated on directions drawn at random in the standard space.\par
+
+The \emph{learning step} uses an \emph{a priori} number of random directions that is uniformly distributed over the quadrants, meaning the weights are as follows:
+\begin{equation}
+  \omega^1_i = \frac{1}{m}, \quad i = 1, \ldots, m.
+\end{equation}
+Directional sampling is used for estimating the failure probability in each quadrant:
+\begin{equation}
+  \hat P_i^{DS} = \Prob{\{g(\uX) \leq 0\} \mid \uX \in \mathbb{Q}_i},\,i = 1, \ldots, m.
+\end{equation}
+and the corresponding estimation variances are denoted as $\sigma_i^{DS\,2}$. These probabilities are estimated using the same number $N^0_i$ of random directions per quadrant as told by the uniform weights distribution.\par
+
+The probability of interest is then computed as a weighted average of the previously defined conditional probabilities:
+\begin{eqnarray} \label{eq:pf_est_sda2}
+  \hat P_f = \sum\limits_{i=1}^m \omega_i \hat P_i^{DS}
+\end{eqnarray}
+where $\hat P_i^{DS}$ is the conditional probability estimator in the $i$-th quadrant. The corresponding variance of the stratified estimator reads:
+\begin{eqnarray*}
+  \sigma^2 = \frac{1}{N_l} \left( \sum\limits_{i=1}^m \omega_i \sigma_i^{DS} \right) ^2
+\end{eqnarray*} \label{eq:pf_est_sda2_var}
+where $\sigma_i^{DS\,2}$ is the variance of the conditional probability estimator in the $i$-th quadrant.\par
+
+At the end of the learning step, the weights $\omega_i$ are updated so as to minimize the stratified estimator variance. Indeed, it can be shown that the updated weights:
+\begin{eqnarray*}
+  \omega^2_i = \frac{\omega^1_i \sigma_i^{DS}}{\sum\limits_{j=1}^m \omega^1_j \sigma_j^{DS}}, i = 1, \ldots, m,
+\end{eqnarray*}
+minimize the final estimation variance in \eqref{eq:pf_est_sda2_var}. Note that some weights might be zero (due to a somewhat arbitrary rounding of the conditional probabilities' estimation variance). The quadrants associated with a zero-weight will not be sampled in the estimation step.\par
+
+Eventually, the \emph{estimation step} proceeds in essentially the same way as the learning step with different weights for the quadrants though. \eqref{eq:pf_est_sda2} and \eqref{eq:pf_est_sda2_var} are used for evaluating the final probability probability estimate and its variance.\par
+
+The computational budget per step is parametrized by a fraction $\gamma_l, l = 1,\,2$ of the total budget $N$, such that $\gamma_1 + \gamma_2 = 1$. The number of directions sampled in quadrant $i$ at step $l$ is then defined as follows:
+\begin{eqnarray*}
+  N^l_i = N * \gamma_l * \omega_i.
+\end{eqnarray*}
+The number of evaluation of the limit-state function $g$ is of course greater than the total budget $N$ since directional sampling is used.\par
+
+\underline{\textbf{Variants}}\\
+
+The \emph{ADS-2+ variant} performs a dimension reduction step after the learning step for reducing the number of stratified quadrants. The statistic $\tilde T_k$ aggregates the sensitivity of expectation along dimension $k$. It is defined as follows:
+\begin{equation}
+  \tilde T_k = \sum\limits_{i_l \in \lbrace -1,1 \rbrace,l \neq k} \lvert \tilde I_{(i_1,\dots,i_{k-1},-1,i_{k+1},\dots,i_p)} - \tilde I_{(i_1,\dots,i_{k-1},1,i_{k+1},\dots,i_p)} \rvert.
+\end{equation}
+It is used for ranking the contributions of the quadrants. Then, only the $d' < d$ most influential variables according to $\tilde T_k$ are stratified, leaving the remaining variables simulated without stratification. The corresponding quadrants will not be sampled.\par
+
+The \emph{DP-ADS-2 variant} combines the ADS method with a rotation of the quadrants. The idea is to get a possible design point (available \emph{e.g.} after a preliminary FORM analysis) on the bisector of one of the quadrants to make the stratification even more efficient and thus save some evaluations of the model.\par
+}
+{
+This 2-step algorithm can be generalized to $L > 2$ steps by adding more than one learning step. For now, only ADS-2 is implemented.\par
+}
+
+\Methodology{
+This method is part of the step C of the global methodology. It requires the specification of an Event defined from a RandomVector (synthesizing the random output defined in terms of a joint input Distribution and a computational model, a NumericalMathFunction), a comparison operator and a threshold.\par
+}
+{
+\vspace{10mm}
+The following references are a first introduction to the adaptive directional sampling method:\\
+
+\label{mg10} M. Munoz Zuniga, J. Garnier, E. Remy and E. de Rocquigny \textit{Analysis of adaptive directional stratification for the controlled estimation of rare event}. In Statistics and Computing, 2010.
+}
